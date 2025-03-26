@@ -170,7 +170,8 @@ namespace Xplorer
                 {
                     try
                     {
-                        System.Diagnostics.Process.Start("explorer.exe", drive.Name);
+                        ShellExecute(IntPtr.Zero, "open", drive.Name, null, null, ShowCommands.SW_SHOWNORMAL);
+                        contextMenuStripMain.Close();
                     }
                     catch (Exception ex)
                     {
@@ -383,6 +384,7 @@ namespace Xplorer
                     try
                     {
                         ShellExecute(IntPtr.Zero, "open", folderPath, null, null, ShowCommands.SW_SHOWNORMAL);
+                        contextMenuStripMain.Close();
                     }
                     catch (Exception ex)
                     {
@@ -410,6 +412,7 @@ namespace Xplorer
                 try
                 {
                     System.Diagnostics.Process.Start(filePath);
+                    contextMenuStripMain.Close();
                 }
                 catch (Exception ex)
                 {
@@ -484,5 +487,26 @@ namespace Xplorer
             return SystemIcons.Application;
         }
 
+        private void notifyIcon_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                
+                using (Form tempForm = new Form())
+                {
+                    // Set the form's size to 0 and make it invisible
+                    tempForm.Size = new Size(0, 0);
+                    tempForm.StartPosition = FormStartPosition.Manual;
+                    tempForm.ShowInTaskbar = false;
+
+                    // Show the form
+                    tempForm.Show();
+
+                    // Bring the context menu to the foreground and show it at cursor position
+                    tempForm.Activate();
+                    contextMenuStripMain.Show(tempForm, tempForm.PointToClient(Cursor.Position));
+                }
+            }
+        }
     }
 }
