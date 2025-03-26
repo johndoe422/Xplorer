@@ -41,6 +41,24 @@ namespace Xplorer
         [DllImport("user32.dll")]
         private static extern IntPtr ExtractIcon(IntPtr hInst, string lpszExeFileName, int nIconIndex);
 
+        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr ShellExecute(IntPtr hwnd, string lpOperation, string lpFile, string lpParameters, string lpDirectory, ShowCommands nShowCmd);
+
+        private enum ShowCommands : int
+        {
+            SW_HIDE = 0,
+            SW_SHOWNORMAL = 1,
+            SW_SHOWMINIMIZED = 2,
+            SW_SHOWMAXIMIZED = 3,
+            SW_SHOWNOACTIVATE = 4,
+            SW_SHOW = 5,
+            SW_MINIMIZE = 6,
+            SW_SHOWMINNOACTIVE = 7,
+            SW_SHOWNA = 8,
+            SW_RESTORE = 9,
+            SW_SHOWDEFAULT = 10,
+            SW_FORCEMINIMIZE = 11
+        }
 
 
         private bool isCloseEventCancelled = true;
@@ -65,27 +83,6 @@ namespace Xplorer
         private void notifyIcon_DoubleClick(object sender, EventArgs e)
         {
             this.Show();
-        }
-
-        private void notifyIcon_MouseClick(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                using (Form tempForm = new Form())
-                {
-                    // Set the form's size to 0 and make it invisible
-                    tempForm.Size = new Size(0, 0);
-                    tempForm.StartPosition = FormStartPosition.Manual;
-                    tempForm.ShowInTaskbar = false;
-
-                    // Show the form
-                    tempForm.Show();
-
-                    // Bring the context menu to the foreground and show it at cursor position
-                    tempForm.Activate();
-                    contextMenuStripMain.Show(tempForm, tempForm.PointToClient(Cursor.Position));
-                }
-            }
         }
 
         private Icon GetDriveIcon(DriveInfo drive)
@@ -168,15 +165,18 @@ namespace Xplorer
             }
 
             // Add click event to open the drive in File Explorer
-            driveMenuItem.Click += (s, args) =>
+            driveMenuItem.MouseDown += (s, e) =>
             {
-                try
+                if (e.Clicks == 2 && e.Button == MouseButtons.Left)
                 {
-                    System.Diagnostics.Process.Start("explorer.exe", drive.Name);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Could not open drive {drive.Name}: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    try
+                    {
+                        System.Diagnostics.Process.Start("explorer.exe", drive.Name);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Could not open drive {drive.Name}: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             };
 
@@ -194,6 +194,9 @@ namespace Xplorer
 
             // Add mouse hover event to dynamically load submenus
             driveMenuItem.MouseHover += (s, e) => PopulateDriveSubmenu(driveMenuItem, drive.Name);
+
+            // Don't have to lazy load initially
+            PopulateDriveSubmenu(driveMenuItem, drive.Name);
 
             return driveMenuItem;
         }
@@ -299,57 +302,58 @@ namespace Xplorer
             {
                 // Always add a dummy submenu item to enable expand option
                 // This ensures the expand arrow is visible for all folders
-                ToolStripMenuItem dummyItem = new ToolStripMenuItem("Loading...")
+                string[] directories = Directory.GetDirectories(folderPath);
+                string[] files = Directory.GetFiles(folderPath);
+
+                if (directories.Length != 0 || files.Length != 0)
                 {
-                    Enabled = false
-                };
-                folderMenuItem.DropDownItems.Add(dummyItem);
+                    ToolStripMenuItem dummyItem = new ToolStripMenuItem("Loading...")
+                    {
+                        Enabled = false
+                    };
+                    folderMenuItem.DropDownItems.Add(dummyItem);
+                }
+                else
+                {
+                    folderMenuItem.ForeColor = Color.Gray;
+                    folderMenuItem.Tag = "Empty";
+                }
 
                 // Optional: Check actual folder contents when needed
-                folderMenuItem.DropDownOpening += (s, e) =>
+                if (folderMenuItem.Tag == null)
                 {
-                    // Clear existing dummy/previous items
-                    folderMenuItem.DropDownItems.Clear();
-
-                    try
+                    folderMenuItem.DropDownOpening += (s, e) =>
                     {
-                        string[] directories = Directory.GetDirectories(folderPath);
-                        string[] files = Directory.GetFiles(folderPath);
-
-                        if (directories.Length == 0 && files.Length == 0)
+                        // Clear existing dummy/previous items
+                        folderMenuItem.DropDownItems.Clear();
+                        try
                         {
-                            // Empty folder
-                            ToolStripMenuItem emptyItem = new ToolStripMenuItem("(Empty)")
+                            if (directories.Length != 0 || files.Length != 0)
                             {
-                                Enabled = false
+                                // Populate with actual contents
+                                PopulateDriveSubmenu(folderMenuItem, folderPath);
+                            }
+                        }
+                        catch (UnauthorizedAccessException)
+                        {
+                            ToolStripMenuItem accessDeniedItem = new ToolStripMenuItem("Access Denied")
+                            {
+                                Enabled = false,
+                                ForeColor = Color.Red
                             };
-                            folderMenuItem.DropDownItems.Add(emptyItem);
+                            folderMenuItem.DropDownItems.Add(accessDeniedItem);
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            // Populate with actual contents
-                            PopulateDriveSubmenu(folderMenuItem, folderPath);
+                            ToolStripMenuItem errorItem = new ToolStripMenuItem($"Error: {ex.Message}")
+                            {
+                                Enabled = false,
+                                ForeColor = Color.Red
+                            };
+                            folderMenuItem.DropDownItems.Add(errorItem);
                         }
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        ToolStripMenuItem accessDeniedItem = new ToolStripMenuItem("Access Denied")
-                        {
-                            Enabled = false,
-                            ForeColor = Color.Red
-                        };
-                        folderMenuItem.DropDownItems.Add(accessDeniedItem);
-                    }
-                    catch (Exception ex)
-                    {
-                        ToolStripMenuItem errorItem = new ToolStripMenuItem($"Error: {ex.Message}")
-                        {
-                            Enabled = false,
-                            ForeColor = Color.Red
-                        };
-                        folderMenuItem.DropDownItems.Add(errorItem);
-                    }
-                };
+                    };
+                }
             }
             catch (Exception ex)
             {
@@ -363,15 +367,18 @@ namespace Xplorer
             }
 
             // Click event to open folder
-            folderMenuItem.Click += (s, e) =>
+            folderMenuItem.MouseDown += (s, e) =>
             {
-                try
+                if (e.Clicks == 2 && e.Button == MouseButtons.Left)
                 {
-                    System.Diagnostics.Process.Start("explorer.exe", folderPath);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Could not open folder: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    try
+                    {
+                        ShellExecute(IntPtr.Zero, "open", folderPath, null, null, ShowCommands.SW_SHOWNORMAL);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Could not open folder: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             };
 
@@ -465,5 +472,6 @@ namespace Xplorer
             // Fallback to system document icon
             return SystemIcons.Application;
         }
+
     }
 }
