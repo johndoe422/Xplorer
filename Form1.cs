@@ -60,7 +60,6 @@ namespace Xplorer
             SW_FORCEMINIMIZE = 11
         }
 
-
         private bool isCloseEventCancelled = true;
         public Form1()
         {
@@ -300,14 +299,16 @@ namespace Xplorer
 
             try
             {
-                // Always add a dummy submenu item to enable expand option
-                // This ensures the expand arrow is visible for all folders
+      
+
                 string[] directories = Directory.GetDirectories(folderPath);
                 string[] files = Directory.GetFiles(folderPath);
 
-                if (directories.Length != 0 || files.Length != 0)
+                if (directories.Length == 0 && files.Length == 0)
                 {
-                    ToolStripMenuItem dummyItem = new ToolStripMenuItem("Loading...")
+                    folderMenuItem.ForeColor = Color.Gray;
+                    folderMenuItem.Tag = "Empty";
+                    ToolStripMenuItem dummyItem = new ToolStripMenuItem("(Empty)")
                     {
                         Enabled = false
                     };
@@ -315,8 +316,11 @@ namespace Xplorer
                 }
                 else
                 {
-                    folderMenuItem.ForeColor = Color.Gray;
-                    folderMenuItem.Tag = "Empty";
+                    ToolStripMenuItem dummyItem = new ToolStripMenuItem("Loading...")
+                    {
+                        Enabled = false
+                    };
+                    folderMenuItem.DropDownItems.Add(dummyItem);
                 }
 
                 // Optional: Check actual folder contents when needed
@@ -369,6 +373,11 @@ namespace Xplorer
             // Click event to open folder
             folderMenuItem.MouseDown += (s, e) =>
             {
+                //if (e.Button == MouseButtons.Right)
+                //{
+                //    FolderContextMenu.ShowContextMenu(folderPath, Cursor.Position.X, Cursor.Position.Y);
+                //}
+                //else 
                 if (e.Clicks == 2 && e.Button == MouseButtons.Left)
                 {
                     try
@@ -397,6 +406,7 @@ namespace Xplorer
             // Click event to open file
             fileMenuItem.Click += (s, e) =>
             {
+              
                 try
                 {
                     System.Diagnostics.Process.Start(filePath);
@@ -405,6 +415,7 @@ namespace Xplorer
                 {
                     MessageBox.Show($"Could not open file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                
             };
 
             return fileMenuItem;
