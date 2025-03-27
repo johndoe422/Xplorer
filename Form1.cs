@@ -62,6 +62,7 @@ namespace Xplorer
 
         private bool isCloseEventCancelled = true;
         private int menuOpenCount = 0;
+        Icon genericFolderIcon = null;
 
         private enum FolderType
         {
@@ -72,6 +73,7 @@ namespace Xplorer
         public Form1()
         {
             InitializeComponent();
+            genericFolderIcon = GetFolderIcon();
             PopulateDriveMenuItems();
             PopulateProfileFolders();
         }
@@ -244,6 +246,7 @@ namespace Xplorer
                 Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
                 Environment.GetFolderPath(Environment.SpecialFolder.MyVideos)
             };
+            contextMenuStripMain.Items.Insert(0, new ToolStripSeparator());
             foreach (string folder in profileFolders)
             {
                 try
@@ -318,7 +321,7 @@ namespace Xplorer
             string folderName = Path.GetFileName(folderPath);
             bool isFolderEmpty = false;
 
-            Icon folderIcon = type == FolderType.SpecialFolder ? FolderIconRetriever.GetFolderIcon(folderPath) : GetFolderIcon();
+            Icon folderIcon = type == FolderType.SpecialFolder ? FolderIconRetriever.GetFolderIcon(folderPath) : genericFolderIcon;
 
             ToolStripMenuItem folderMenuItem = new ToolStripMenuItem(folderName)
             {
