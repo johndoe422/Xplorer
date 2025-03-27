@@ -66,6 +66,7 @@ namespace Xplorer
         {
             InitializeComponent();
             PopulateDriveMenuItems();
+            PopulateProfileFolders();
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -148,8 +149,7 @@ namespace Xplorer
             // Create a new menu item with volume label and drive letter
             ToolStripMenuItem driveMenuItem = new ToolStripMenuItem
             {
-                Text = $"{volumeLabel} {drive.Name.TrimEnd('\\')}",
-                ToolTipText = $"Type: {drive.DriveType}"
+                Text = $"{volumeLabel} {drive.Name.TrimEnd('\\')}"
             };
 
             // Set the icon for the menu item
@@ -180,18 +180,6 @@ namespace Xplorer
                     }
                 }
             };
-
-            // Add additional drive information to tooltip
-            try
-            {
-                long freeSpaceGB = drive.AvailableFreeSpace / (1024 * 1024 * 1024);
-                long totalSpaceGB = drive.TotalSize / (1024 * 1024 * 1024);
-                driveMenuItem.ToolTipText += $"\nFree: {freeSpaceGB}GB / {totalSpaceGB}GB";
-            }
-            catch
-            {
-                // Ignore errors in space calculation
-            }
 
             // Add mouse hover event to dynamically load submenus
             driveMenuItem.MouseHover += (s, e) => PopulateDriveSubmenu(driveMenuItem, drive.Name);
@@ -234,6 +222,34 @@ namespace Xplorer
                 ToolStripMenuItem errorItem = new ToolStripMenuItem($"Error loading drives: {ex.Message}");
                 errorItem.Enabled = false;
                 contextMenuStripMain.Items.Insert(insertIndex, errorItem);
+            }
+        }
+
+        private void PopulateProfileFolders()
+        {
+            //Populate downloads, desktop, pictures, documents, music, videos folders in contextMenuStripMain for easy access
+            string[] profileFolders = new string[]
+            {
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads"),
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
+                Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
+                Environment.GetFolderPath(Environment.SpecialFolder.MyVideos)
+            };
+            foreach (string folder in profileFolders)
+            {
+                try
+                {
+                    ToolStripMenuItem folderMenuItem = CreateFolderMenuItem(folder);
+                    contextMenuStripMain.Items.Insert(0, folderMenuItem);
+                }
+                catch (Exception ex)
+                {
+                    ToolStripMenuItem errorItem = new ToolStripMenuItem($"Error loading folder: {ex.Message}");
+                    errorItem.Enabled = false;
+                    contextMenuStripMain.Items.Add(errorItem);
+                }
             }
         }
 
