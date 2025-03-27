@@ -63,6 +63,7 @@ namespace Xplorer
         private bool isCloseEventCancelled = true;
         private int menuOpenCount = 0;
         Icon genericFolderIcon = null;
+        private GlobalHotkey globalHotkey;
 
         private enum FolderType
         {
@@ -73,9 +74,27 @@ namespace Xplorer
         public Form1()
         {
             InitializeComponent();
+
+            // Initialize global hotkey
+            globalHotkey = new GlobalHotkey(notifyIcon, this);
+            // Register Win+Shift+A hotkey
+            globalHotkey.RegisterGlobalHotkey(
+                GlobalHotkey.MOD_WIN | GlobalHotkey.MOD_SHIFT,
+                (uint)Keys.A
+            );
+
             genericFolderIcon = GetFolderIcon();
             PopulateDriveMenuItems();
             PopulateProfileFolders();
+        }
+
+        // Override WndProc to handle global hotkey messages
+        protected override void WndProc(ref Message m)
+        {
+            if (!globalHotkey.ProcessHotkey(ref m))
+            {
+                base.WndProc(ref m);
+            }
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -87,6 +106,13 @@ namespace Xplorer
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             e.Cancel = this.isCloseEventCancelled;
+
+            if (!this.isCloseEventCancelled)
+            {
+                globalHotkey.UnregisterGlobalHotkey();
+                base.OnFormClosing(e);
+            }
+            
             this.Hide();
         }
 
