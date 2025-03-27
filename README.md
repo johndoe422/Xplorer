@@ -1,65 +1,37 @@
-# System Drive Explorer Tray Application
+# Xplore
 
-## Overview
-This Windows Forms application provides a convenient system tray utility for quick access to system drives, folders, and files directly from the context menu.
+**Xplore** is a lightweight system tray application that restores the **Quick Launch "My Computer" expanding filesystem menu** from Windows 10 and earlier versions. Microsoft removed the ability to add such a quicklanch of the file system in Windows 11, but Xplore brings it back, allowing you to navigate your file system effortlessly through a dynamically expanding context menu.
 
 ## Features
 
-### Drive Menu Integration
-- Dynamically lists system drives in the tray icon context menu
-- Displays drive volume labels and drive letters
-- Shows drive icons extracted from the system
+- **Quick Access to Drives** – Clicking the system tray icon opens a menu displaying all available drives.  
+- **Dynamic Navigation** – Expand folders within the menu to browse files and subfolders without opening File Explorer.  
+- **Single Click to Open Files** – Open files directly with a single click.  
+- **Double Click to Open Folders** – Open a folder with a double-click.  
+- **Minimal & Lightweight** – Runs in the system tray without cluttering your desktop.  
 
-### Folder and File Navigation
-- Lazy-loading of folder contents
-- Recursive folder exploration
-- Icons for folders and files
-- One-click access to open drives, folders, and files
+## Why Xplore?
 
-### Error Handling
-- Graceful handling of access-denied scenarios
-- Visual indicators for empty or inaccessible folders
-- Robust icon extraction with multiple fallback methods
+Windows 10 allowed users to pin "This PC" (My Computer) to the taskbar as a quicklaunch item and access file system contents via expandable menu. Windows 11 removed this functionality. **Xplore restores this experience**, letting you browse your entire file system seamlessly through the system tray.
 
-## Technical Details
+## Installation
 
-### Technologies
-- .NET Framework 4.8
-- Windows Forms
-- Windows Shell API Integration
-
-### Key Components
-- Dynamic context menu generation
-- System icon extraction
-- Recursive folder content loading
-
-## Getting Started
-
-### Prerequisites
-- Windows OS
-- .NET Framework 4.8
-- Visual Studio (recommended for development)
-
-### Installation
-1. Clone the repository
-2. Open the solution in Visual Studio
-3. Build the project
-4. Run the application
+1. Download the latest release from the [Releases](https://github.com/your-username/Xplore/releases) page.  (To be updated)
+2. Run the installer or extract the portable version.  
+3. Launch Xplore, and it will appear in the system tray.  
 
 ## Usage
-- Right-click the system tray icon to open the context menu
-- Hover over drive/folder menu items to explore contents
-- Click on any item to open in File Explorer
+
+1. Left or right click the **Xplore** icon in the system tray.  
+2. A menu will open, displaying all available drives.  
+3. Navigate through folders and files via dynamically expanding menus.  
+4. **Single-click** a file to open it.  
+5. **Double-click** a folder to open it in File Explorer.  
 
 ## Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
+
+Feel free to fork this project, submit issues, or suggest improvements! PRs are welcome.  
 
 ## License
-[Specify your license here, e.g., MIT, Apache 2.0]
 
-## Author
-[Your Name]
-
-## Acknowledgments
-- Windows Shell API
-- .NET Framework
+This project is licensed under the [MIT License](LICENSE).
