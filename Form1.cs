@@ -107,11 +107,14 @@ namespace Xplorer
         {
             e.Cancel = this.isCloseEventCancelled;
 
-            if (!this.isCloseEventCancelled)
+            try
             {
-                globalHotkey.UnregisterGlobalHotkey();
-                base.OnFormClosing(e);
+                if (!this.isCloseEventCancelled)
+                {
+                    globalHotkey.UnregisterGlobalHotkey();
+                }
             }
+            catch (Exception) { }
             
             this.Hide();
         }
