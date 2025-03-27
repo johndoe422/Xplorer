@@ -64,12 +64,33 @@ namespace Xplorer
         private int menuOpenCount = 0;
         Icon genericFolderIcon = null;
         private GlobalHotkey globalHotkey;
-
+        
         private enum FolderType
         {
             RegularFolder,
             SpecialFolder
         };
+
+        public enum ExitMenuMode
+        {
+            Exit,
+            Cancel
+        };
+
+        private ExitMenuMode exitMode;
+        public ExitMenuMode ExitMode
+        {
+            get
+            {
+                return exitMode;
+            }
+            set
+            {
+                exitMode = value;
+                this.exitToolStripMenuItem.Text = exitMode == ExitMenuMode.Cancel ? "&Cancel" : "E&xit";
+            }
+        }
+        
 
         public Form1()
         {
@@ -99,6 +120,12 @@ namespace Xplorer
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (ExitMode == ExitMenuMode.Cancel)
+            {
+                this.contextMenuStripMain.Close();
+                return;
+            }
+
             this.isCloseEventCancelled = false;
             this.Close();
         }
@@ -549,6 +576,9 @@ namespace Xplorer
 
         private void notifyIcon_MouseClick(object sender, MouseEventArgs e)
         {
+            // Bring back exit option on the menu if its cancel (from a hotkey trigger)
+            this.ExitMode = ExitMenuMode.Exit;
+
             if (e.Button == MouseButtons.Left)
             {
                 // Instead of initiating the menu on a temp form, this is consistent approach, simulate right click.
@@ -576,5 +606,6 @@ namespace Xplorer
         {
             this.menuOpenCount++;
         }
+
     }
 }

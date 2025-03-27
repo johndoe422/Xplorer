@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Xplorer;
 
 public class GlobalHotkey
 {
@@ -20,25 +22,25 @@ public class GlobalHotkey
     // Hotkey message identifier
     private const int WM_HOTKEY = 0x0312;
 
-    private NotifyIcon _trayIcon;
-    private Form _mainForm;
+    private NotifyIcon trayIcon;
+    private Form1 mainForm;
     private int _hotkeyId;
 
-    public GlobalHotkey(NotifyIcon trayIcon, Form mainForm)
+    public GlobalHotkey(NotifyIcon trayIcon, Form1 mainForm)
     {
-        _trayIcon = trayIcon;
-        _mainForm = mainForm;
+        this.trayIcon = trayIcon;
+        this.mainForm = mainForm;
         _hotkeyId = GetHashCode(); // Unique identifier for the hotkey
     }
 
     public bool RegisterGlobalHotkey(uint modifier, uint key)
     {
-        return RegisterHotKey(_mainForm.Handle, _hotkeyId, modifier, key);
+        return RegisterHotKey(mainForm.Handle, _hotkeyId, modifier, key);
     }
 
     public bool UnregisterGlobalHotkey()
     {
-        return UnregisterHotKey(_mainForm.Handle, _hotkeyId);
+        return UnregisterHotKey(mainForm.Handle, _hotkeyId);
     }
 
     // Method to process hotkey message
@@ -50,11 +52,31 @@ public class GlobalHotkey
             if ((int)m.WParam == _hotkeyId)
             {
                 // Show context menu at cursor position
-                _trayIcon.ContextMenuStrip.Show(Cursor.Position);
+                mainForm.ExitMode = Form1.ExitMenuMode.Cancel;
+                ShowContextMenu(trayIcon.ContextMenuStrip);
                 return true;
             }
         }
         return false;
+    }
+
+    public static void ShowContextMenu(ContextMenuStrip contextMenu)
+    {
+        using (Form tempForm = new Form())
+        {
+            // Set the form's size to 0 and make it invisible
+            tempForm.Size = new Size(0, 0);
+            tempForm.StartPosition = FormStartPosition.Manual;
+            tempForm.ShowInTaskbar = false;
+            tempForm.FormBorderStyle = FormBorderStyle.None;
+
+            // Show the form
+            tempForm.Show();
+
+            // Bring the context menu to the foreground and show it at cursor position
+            tempForm.Activate();
+            contextMenu.Show(tempForm, tempForm.PointToClient(Cursor.Position));
+        }
     }
 }
 
