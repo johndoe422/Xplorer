@@ -61,6 +61,7 @@ namespace Xplorer
         }
 
         private bool isCloseEventCancelled = true;
+        private int menuOpenCount = 0;
         public Form1()
         {
             InitializeComponent();
@@ -292,23 +293,23 @@ namespace Xplorer
         private ToolStripMenuItem CreateFolderMenuItem(string folderPath)
         {
             string folderName = Path.GetFileName(folderPath);
+            bool isFolderEmpty = false;
 
             ToolStripMenuItem folderMenuItem = new ToolStripMenuItem(folderName)
             {
-                Image = GetFolderIcon().ToBitmap()
+                Image = GetFolderIcon().ToBitmap(),
+                Tag = 0
             };
 
             try
             {
-      
-
                 string[] directories = Directory.GetDirectories(folderPath);
                 string[] files = Directory.GetFiles(folderPath);
 
                 if (directories.Length == 0 && files.Length == 0)
                 {
                     folderMenuItem.ForeColor = Color.Gray;
-                    folderMenuItem.Tag = "Empty";
+                    isFolderEmpty = true;
                     ToolStripMenuItem dummyItem = new ToolStripMenuItem("(Empty)")
                     {
                         Enabled = false
@@ -325,17 +326,25 @@ namespace Xplorer
                 }
 
                 // Optional: Check actual folder contents when needed
-                if (folderMenuItem.Tag == null)
+                if (!isFolderEmpty)
                 {
                     folderMenuItem.DropDownOpening += (s, e) =>
                     {
+
+                        if (Convert.ToInt32(folderMenuItem.Tag) == this.menuOpenCount)
+                        {
+                            // Performance improvement by skipping re-loading contents of the folder again in the same menu opening session
+                            return;
+                        }
+
+                        folderMenuItem.Tag = this.menuOpenCount;
+
                         // Clear existing dummy/previous items
                         folderMenuItem.DropDownItems.Clear();
                         try
                         {
                             if (directories.Length != 0 || files.Length != 0)
                             {
-                                // Populate with actual contents
                                 PopulateDriveSubmenu(folderMenuItem, folderPath);
                             }
                         }
@@ -510,6 +519,11 @@ namespace Xplorer
         private void Form1_Load(object sender, EventArgs e)
         {
             ShowStartupBalloonTip();
+        }
+
+        private void contextMenuStripMain_Opened(object sender, EventArgs e)
+        {
+            this.menuOpenCount++;
         }
     }
 }
