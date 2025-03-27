@@ -62,6 +62,13 @@ namespace Xplorer
 
         private bool isCloseEventCancelled = true;
         private int menuOpenCount = 0;
+
+        private enum FolderType
+        {
+            RegularFolder,
+            SpecialFolder
+        };
+
         public Form1()
         {
             InitializeComponent();
@@ -241,7 +248,7 @@ namespace Xplorer
             {
                 try
                 {
-                    ToolStripMenuItem folderMenuItem = CreateFolderMenuItem(folder);
+                    ToolStripMenuItem folderMenuItem = CreateFolderMenuItem(folder, FolderType.SpecialFolder);
                     contextMenuStripMain.Items.Insert(0, folderMenuItem);
                 }
                 catch (Exception ex)
@@ -306,14 +313,16 @@ namespace Xplorer
             }
         }
 
-        private ToolStripMenuItem CreateFolderMenuItem(string folderPath)
+        private ToolStripMenuItem CreateFolderMenuItem(string folderPath, FolderType type = FolderType.RegularFolder)
         {
             string folderName = Path.GetFileName(folderPath);
             bool isFolderEmpty = false;
 
+            Icon folderIcon = type == FolderType.SpecialFolder ? FolderIconRetriever.GetFolderIcon(folderPath) : GetFolderIcon();
+
             ToolStripMenuItem folderMenuItem = new ToolStripMenuItem(folderName)
             {
-                Image = GetFolderIcon().ToBitmap(),
+                Image = folderIcon.ToBitmap(),
                 Tag = 0
             };
 
@@ -346,7 +355,6 @@ namespace Xplorer
                 {
                     folderMenuItem.DropDownOpening += (s, e) =>
                     {
-
                         if (Convert.ToInt32(folderMenuItem.Tag) == this.menuOpenCount)
                         {
                             // Performance improvement by skipping re-loading contents of the folder again in the same menu opening session
@@ -399,11 +407,6 @@ namespace Xplorer
             // Click event to open folder
             folderMenuItem.MouseDown += (s, e) =>
             {
-                //if (e.Button == MouseButtons.Right)
-                //{
-                //    FolderContextMenu.ShowContextMenu(folderPath, Cursor.Position.X, Cursor.Position.Y);
-                //}
-                //else 
                 if (e.Clicks == 2 && e.Button == MouseButtons.Left)
                 {
                     try
