@@ -491,22 +491,25 @@ namespace Xplorer
         {
             if (e.Button == MouseButtons.Left)
             {
-                
-                using (Form tempForm = new Form())
-                {
-                    // Set the form's size to 0 and make it invisible
-                    tempForm.Size = new Size(0, 0);
-                    tempForm.StartPosition = FormStartPosition.Manual;
-                    tempForm.ShowInTaskbar = false;
-
-                    // Show the form
-                    tempForm.Show();
-
-                    // Bring the context menu to the foreground and show it at cursor position
-                    tempForm.Activate();
-                    contextMenuStripMain.Show(tempForm, tempForm.PointToClient(Cursor.Position));
-                }
+                // Instead of initiating the menu on a temp form, this is consistent approach, simulate right click.
+                MouseClicker.SimulateRightClick(Cursor.Position.X, Cursor.Position.Y);
             }
+        }
+
+        private void ShowStartupBalloonTip()
+        {
+            notifyIcon.BalloonTipTitle = "Xplore: Quick File System Access";
+            notifyIcon.BalloonTipText = "Navigate your file system with ease: " +
+                "Left or right click to open file system menu, " +
+                "double-click to open folders, and single-click to open files.";
+            notifyIcon.BalloonTipIcon = ToolTipIcon.Info;
+
+            // Show the balloon tip for 6 seconds
+            notifyIcon.ShowBalloonTip(6000);
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            ShowStartupBalloonTip();
         }
     }
 }
