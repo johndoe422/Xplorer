@@ -17,8 +17,8 @@ Windows 10 allowed users to pin "This PC" (My Computer) to the taskbar as a quic
 ## Installation
 
 1. Download the latest release from the [Releases](https://github.com/your-username/Xplore/releases) page.  (To be updated)
-2. Run the installer or extract the portable version.  
-3. Launch Xplore, and it will appear in the system tray.  
+2. Run the Xplore executable.   
+3. Xplore icon will appear in the system tray.  
 
 ## Usage
 
