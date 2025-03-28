@@ -25,10 +25,17 @@ Windows 10 allowed users to pin "This PC" (My Computer) to the taskbar as a quic
 ## Usage
 
 1. Left or right click the **Xplore** icon in the system tray.  
-2. A menu will open, displaying all available drives.  
-3. Navigate through folders and files via dynamically expanding menus.  
-4. **Single-click** a file to open it.  
-5. **Double-click** a folder to open it in File Explorer.  
+2. A menu will open, displaying all available drives.
+
+     ![Image](https://github.com/user-attachments/assets/c5bc2ed0-8bfb-4d71-964d-41bc1203d72f)
+
+4. Navigate through folders and files via dynamically expanding menus.  
+5. **Single-click** a file to open it.  
+6. **Double-click** a folder to open it in File Explorer.
+7. You can also press the hotkey **Win+Shift+A** to launch this menu from any application. It will launch exactly at the mouse cursor's current location.
+
+    ![Image](https://github.com/user-attachments/assets/a2e0cf55-5ee7-43e3-9d5c-ba909df0c2d8)
+    ![Image](https://github.com/user-attachments/assets/341f5c6a-942c-4cda-bbb9-8825a317dfd7)
 
 ## Contributing
 
