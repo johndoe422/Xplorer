@@ -9,7 +9,7 @@
 - **Single Click to Open Files** – Open files directly with a single click.  
 - **Double Click to Open Folders** – Open a folder with a double-click.  
 - **Minimal & Lightweight** – Runs in the system tray without cluttering your desktop.
-- **Global shortcut Win+Shift+A** to launch this expanding file system menu from anywhere even when working on other apps. 
+- **Global shortcut Win+Shift+A** - to launch this expanding file system menu from anywhere even when you're working on other apps. 
 
 ## Why Xplore?
 
