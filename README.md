@@ -35,6 +35,7 @@ Windows 10 allowed users to pin "This PC" (My Computer) to the taskbar as a quic
 7. You can also press the hotkey **Win+Shift+A** to launch this menu from any application. It will launch exactly at the mouse cursor's current location.
 
     ![Image](https://github.com/user-attachments/assets/a2e0cf55-5ee7-43e3-9d5c-ba909df0c2d8)
+    ![Image](https://github.com/user-attachments/assets/ab6eb812-e545-478e-8eb8-5f770ca5d45b)
     ![Image](https://github.com/user-attachments/assets/341f5c6a-942c-4cda-bbb9-8825a317dfd7)
 
 ## Contributing
