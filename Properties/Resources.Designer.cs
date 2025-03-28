@@ -61,7 +61,7 @@ namespace Xplorer.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&lt;configuration&gt;&lt;startup&gt;&lt;supportedRuntime version=&quot;v4.0&quot; sku=&quot;.NETFramework,Version=v4.8&quot;/&gt;&lt;/startup&gt;&lt;appSettings&gt;&lt;add key=&quot;MaxFolderEntries&quot; value=&quot;150&quot;/&gt;&lt;add key=&quot;DontShowAgain&quot; value=&quot;true&quot;/&gt;&lt;add key=&quot;LoadStartmenu&quot; value=&quot;false&quot;/&gt;&lt;/appSettings&gt;&lt;/configuration&gt;
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&lt;configuration&gt;&lt;startup&gt;&lt;supportedRuntime version=&quot;v4.0&quot; sku=&quot;.NETFramework,Version=v4.8&quot;/&gt;&lt;/startup&gt;&lt;appSettings&gt;&lt;add key=&quot;MaxFolderEntries&quot; value=&quot;150&quot;/&gt;&lt;add key=&quot;DontShowAgain&quot; value=&quot;false&quot;/&gt;&lt;add key=&quot;LoadStartmenu&quot; value=&quot;false&quot;/&gt;&lt;/appSettings&gt;&lt;/configuration&gt;
         ///.
         /// </summary>
         internal static string DefaultConfigTemplate {

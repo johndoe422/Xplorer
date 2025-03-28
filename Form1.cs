@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Configuration;
+using Microsoft.Win32;
 
 
 namespace Xplorer
@@ -102,7 +103,7 @@ namespace Xplorer
         {
             InitializeComponent();
             
-          
+            // Load settings
             ReadConfig();
 
             // Initialize global hotkey
@@ -116,6 +117,62 @@ namespace Xplorer
             genericFolderIcon = GetFolderIcon();
             PopulateDriveMenuItems();
             PopulateProfileFolders();
+        }
+
+        private async void Form1_Load(object sender, EventArgs e)
+        {
+            ShowStartupBalloonTip();
+
+            // Call AddtoStartup after 4 seconds
+            await Task.Delay(3000);
+            AddtoStartup();
+        }
+
+        private void AddtoStartup()
+        {
+            if (dontShowAgain)
+                return;
+
+            try
+            {
+                RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
+                if (registryKey.GetValue("Xplore") != null)
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to check registry: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            AddtoStartup addtoStartup = new AddtoStartup();
+            addtoStartup.ShowDialog();
+
+            if (addtoStartup.DoNotShowAgain)
+            {
+                dontShowAgain = true;
+                // set the value in the app config 
+                Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                config.AppSettings.Settings["DontShowAgain"].Value = "true";
+                config.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("appSettings");
+            }
+
+            if (addtoStartup.AddToStartup)
+            {
+                try
+                {
+                    string exePath = Application.ExecutablePath;
+                    RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
+                    registryKey.SetValue("Xplore", exePath);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to add to startup: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         // Override WndProc to handle global hotkey messages
@@ -661,10 +718,7 @@ namespace Xplorer
             // Show the balloon tip for 6 seconds
             notifyIcon.ShowBalloonTip(6000);
         }
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            ShowStartupBalloonTip();
-        }
+
 
         private void contextMenuStripMain_Opened(object sender, EventArgs e)
         {
