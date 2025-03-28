@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using System.Configuration;
 
 
 namespace Xplorer
@@ -64,7 +65,12 @@ namespace Xplorer
         private int menuOpenCount = 0;
         Icon genericFolderIcon = null;
         private GlobalHotkey globalHotkey;
-        
+
+        // Default app settings (config file will override)
+        private int maxFolderEntries = 150;
+        private bool dontShowAgain = false;
+        private bool loadStartmenu = true;
+
         private enum FolderType
         {
             RegularFolder,
@@ -95,6 +101,9 @@ namespace Xplorer
         public Form1()
         {
             InitializeComponent();
+            
+          
+            ReadConfig();
 
             // Initialize global hotkey
             globalHotkey = new GlobalHotkey(notifyIcon, this);
@@ -115,6 +124,36 @@ namespace Xplorer
             if (!globalHotkey.ProcessHotkey(ref m))
             {
                 base.WndProc(ref m);
+            }
+        }
+
+        private void ReadConfig()
+        {
+            CreateDefaultConfigFile();
+            try
+            {
+                if (ConfigurationManager.AppSettings["MaxFolderEntries"] != null)
+                    int.TryParse(ConfigurationManager.AppSettings["MaxFolderEntries"], out maxFolderEntries);
+
+                if (ConfigurationManager.AppSettings["DontShowAgain"] != null)
+                    bool.TryParse(ConfigurationManager.AppSettings["DontShowAgain"], out dontShowAgain);
+
+                if (ConfigurationManager.AppSettings["LoadStartmenu"] != null)
+                    bool.TryParse(ConfigurationManager.AppSettings["LoadStartmenu"], out loadStartmenu);
+            }
+            catch { }
+        }
+
+        private void CreateDefaultConfigFile()
+        {
+            string configPath = Path.Combine(
+                Path.GetDirectoryName(Application.ExecutablePath),
+                Application.ProductName + ".exe.config"
+            );
+
+            if (!File.Exists(configPath))
+            {
+                File.WriteAllText(configPath, Properties.Resources.DefaultConfigTemplate);
             }
         }
 
@@ -328,18 +367,43 @@ namespace Xplorer
             {
                 // Load folders first
                 string[] directories = Directory.GetDirectories(path);
+                string[] files = Directory.GetFiles(path);
+
+                // Limit the number of items to show in the menu 
+                // if number of folders and files together exceed maxFolderEntries,
+                // then only load up to maxFolderEntries, give preference to folders
+                int totalItems = directories.Length + files.Length;
+                bool isLimited = totalItems > maxFolderEntries;
+                if (isLimited)
+                {
+                    int foldersToShow = Math.Min(directories.Length, maxFolderEntries);
+                    int filesToShow = Math.Min(files.Length, maxFolderEntries - foldersToShow);
+
+                    directories = directories.Take(foldersToShow).ToArray();
+                    files = files.Take(filesToShow).ToArray();
+                }
+
                 foreach (string dir in directories.OrderBy(d => Path.GetFileName(d)))
                 {
                     ToolStripMenuItem folderMenuItem = CreateFolderMenuItem(dir);
                     parentMenuItem.DropDownItems.Add(folderMenuItem);
                 }
 
-                // Then load files
-                string[] files = Directory.GetFiles(path);
                 foreach (string file in files.OrderBy(f => Path.GetFileName(f)))
                 {
                     ToolStripMenuItem fileMenuItem = CreateFileMenuItem(file);
                     parentMenuItem.DropDownItems.Add(fileMenuItem);
+                }
+
+                // If the entries are limited due to setting, add a last item that reads "More..." to indicate that there are more items
+                if (isLimited)
+                {
+                    ToolStripMenuItem moreMenuItem = new ToolStripMenuItem("More...")
+                    {
+                        Enabled = false,
+                        ForeColor = Color.Gray
+                    };
+                    parentMenuItem.DropDownItems.Add(moreMenuItem);
                 }
 
                 // If no items found, add a "No items" placeholder
