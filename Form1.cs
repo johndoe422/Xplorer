@@ -138,7 +138,16 @@ namespace Xplorer
                 RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
                 if (registryKey.GetValue("Xplore") != null)
                 {
-                    return;
+                    // Already added to startup, but check if exe path in registryKey is correct
+                    string registryPath = registryKey.GetValue("Xplore").ToString();
+                    string currentExePath = Application.ExecutablePath;
+
+                    // Check if the path in the registry matches the current executable path
+                    if (string.Equals(registryPath, currentExePath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Paths match, no need to update or show the dialog
+                        return;
+                    }
                 }
             }
             catch (Exception ex)
@@ -191,6 +200,7 @@ namespace Xplorer
             {
                 if (ConfigurationManager.AppSettings["MaxFolderEntries"] != null)
                     int.TryParse(ConfigurationManager.AppSettings["MaxFolderEntries"], out maxFolderEntries);
+                maxFolderEntries = maxFolderEntries > 300 ? 300 : maxFolderEntries;
 
                 if (ConfigurationManager.AppSettings["DontShowAgain"] != null)
                     bool.TryParse(ConfigurationManager.AppSettings["DontShowAgain"], out dontShowAgain);
@@ -452,7 +462,8 @@ namespace Xplorer
                     parentMenuItem.DropDownItems.Add(fileMenuItem);
                 }
 
-                // If the entries are limited due to setting, add a last item that reads "More..." to indicate that there are more items
+                // If the entries were limited due to setting,
+                // add a last item that reads "More..." to indicate that there are more items
                 if (isLimited)
                 {
                     ToolStripMenuItem moreMenuItem = new ToolStripMenuItem("More...")
