@@ -1,6 +1,6 @@
 # Xplore
 
-**Xplore** is a lightweight system tray application that restores the **Quick Launch "My Computer" expanding filesystem menu** from Windows 10 and earlier versions. Microsoft removed the quicklanch toolbar in Windows 11, but Xplore brings it back for specifically for the file system, allowing you to navigate your file system effortlessly through a dynamically expanding context menu.
+**Xplore** is a lightweight system tray application that restores the **Quick Launch "My Computer" aka "This PC" expanding filesystem menu** from Windows 10 and earlier versions. Microsoft removed the quicklanch toolbar in Windows 11, but Xplore brings it back for specifically for the file system, allowing you to navigate your file system effortlessly through a dynamically expanding context menu.
 
 ## Features
 
@@ -8,7 +8,8 @@
 - **Dynamic Navigation** – Expand folders within the menu to browse files and subfolders without opening File Explorer.  
 - **Single Click to Open Files** – Open files directly with a single click.  
 - **Double Click to Open Folders** – Open a folder with a double-click.  
-- **Minimal & Lightweight** – Runs in the system tray without cluttering your desktop.  
+- **Minimal & Lightweight** – Runs in the system tray without cluttering your desktop.
+- **Global shortcut Win+Shift+A** to launch file system expanding menu from anywhere even when working on other apps. 
 
 ## Why Xplore?
 
