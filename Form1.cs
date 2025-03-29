@@ -13,6 +13,7 @@ using System.Configuration;
 using Microsoft.Win32;
 
 
+
 namespace Xplorer
 {
     public partial class Form1: Form
@@ -67,6 +68,9 @@ namespace Xplorer
         Icon genericFolderIcon = null;
         private GlobalHotkey globalHotkey;
 
+        // Timer to track idle time and do some memory cleanup
+        private Timer idleTimer;
+
         // Default app settings (config file will override)
         private int maxFolderEntries = 150;
         private bool dontShowAgain = false;
@@ -102,7 +106,12 @@ namespace Xplorer
         public Form1()
         {
             InitializeComponent();
-            
+
+            // Initialize Timer 
+            idleTimer = new Timer();
+            idleTimer.Interval = 4 * 60 * 1000; // 4 minutes in milliseconds
+            idleTimer.Tick += IdleTimer_Tick;
+
             // Load settings
             ReadConfig();
 
@@ -117,6 +126,13 @@ namespace Xplorer
             genericFolderIcon = GetFolderIcon();
             PopulateDriveMenuItems();
             PopulateProfileFolders();
+        }
+
+        private void IdleTimer_Tick(object sender, EventArgs e)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            this.idleTimer.Stop();
         }
 
         private async void Form1_Load(object sender, EventArgs e)
@@ -734,6 +750,17 @@ namespace Xplorer
         private void contextMenuStripMain_Opened(object sender, EventArgs e)
         {
             this.menuOpenCount++;
+
+            if (this.menuOpenCount % 5 == 0)
+            {
+                this.idleTimer.Stop();
+                this.idleTimer.Start();
+            }
+            else if (this.idleTimer.Enabled)
+            {
+                this.idleTimer.Stop();
+                this.idleTimer.Start();
+            }
         }
 
     }
