@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Xplorer")]
-[assembly: AssemblyDescription("Win 10 Quick Launch equivalent for My Computer")]
+[assembly: AssemblyDescription("A file explorer as an expanding menu of subfolders")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sunil TG")]
 [assembly: AssemblyProduct("Xplorer")]
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.2")]
+[assembly: AssemblyFileVersion("1.2")]
