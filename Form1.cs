@@ -374,11 +374,14 @@ namespace Xplorer
                 }
             };
 
-            // Add mouse hover event to dynamically load submenus
-            driveMenuItem.MouseHover += (s, e) => PopulateDriveSubmenu(driveMenuItem, drive.Name);
+            ToolStripMenuItem dummyItem = new ToolStripMenuItem("Loading...")
+            {
+                Enabled = false
+            };
+            driveMenuItem.DropDownItems.Add(dummyItem);
 
-            // Don't have to lazy load initially
-            PopulateDriveSubmenu(driveMenuItem, drive.Name);
+            // Add mouse hover event to dynamically load submenus
+            driveMenuItem.DropDownOpening += (s, e) => PopulateDriveSubmenu(driveMenuItem, drive.Name);
 
             return driveMenuItem;
         }
