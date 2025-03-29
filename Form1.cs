@@ -44,6 +44,10 @@ namespace Xplorer
         [DllImport("user32.dll")]
         private static extern IntPtr ExtractIcon(IntPtr hInst, string lpszExeFileName, int nIconIndex);
 
+        // Add this P/Invoke declaration
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool DestroyIcon(IntPtr hIcon);
+
         [DllImport("shell32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr ShellExecute(IntPtr hwnd, string lpOperation, string lpFile, string lpParameters, string lpDirectory, ShowCommands nShowCmd);
 
@@ -465,7 +469,7 @@ namespace Xplorer
                     directories = directories.Take(foldersToShow).ToArray();
                     files = files.Take(filesToShow).ToArray();
                 }
-
+               
                 foreach (string dir in directories.OrderBy(d => Path.GetFileName(d)))
                 {
                     ToolStripMenuItem folderMenuItem = CreateFolderMenuItem(dir);
@@ -477,7 +481,7 @@ namespace Xplorer
                     ToolStripMenuItem fileMenuItem = CreateFileMenuItem(file);
                     parentMenuItem.DropDownItems.Add(fileMenuItem);
                 }
-
+                
                 // If the entries were limited due to setting,
                 // add a last item that reads "More..." to indicate that there are more items
                 if (isLimited)
@@ -640,10 +644,9 @@ namespace Xplorer
                 Image = GetFileIcon(filePath).ToBitmap()
             };
 
-            // Click event to open file
             fileMenuItem.Click += (s, e) =>
             {
-              
+
                 try
                 {
                     System.Diagnostics.Process.Start(filePath);
@@ -653,9 +656,8 @@ namespace Xplorer
                 {
                     MessageBox.Show($"Could not open file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                
             };
-
+         
             return fileMenuItem;
         }
 
@@ -712,14 +714,17 @@ namespace Xplorer
 
                 if (shfi.hIcon != IntPtr.Zero)
                 {
-                    Icon fileIcon = Icon.FromHandle(shfi.hIcon);
+                    // Clone the icon to prevent referncing to unmanaged heap after it gets deallocated by DestroyIcon
+                    Icon fileIcon = (Icon)Icon.FromHandle(shfi.hIcon).Clone();
+                    // Destroy the original icon handle, fix for GDI handle leaks.
+                    DestroyIcon(shfi.hIcon);
                     return fileIcon;
                 }
             }
             catch { }
 
-            // Fallback to system document icon
-            return SystemIcons.Application;
+            // Fallback icon, but clone it to prevent GDI handles leak anyhow
+            return (Icon)SystemIcons.Application.Clone();
         }
 
         private void notifyIcon_MouseClick(object sender, MouseEventArgs e)
