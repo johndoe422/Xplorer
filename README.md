@@ -1,5 +1,5 @@
 # Xplore
-In a nutshell, **Xplore** is a context menu based **file explorer** designed to enhance producitity by making it possible to browse files and folders using a dynamic, standlone context menu system.
+In a nutshell, **Xplore** is a context menu based **file explorer** designed to enhance producitity by making it possible to browse files and folders using a dynamic, standalone context menu system that can be launched from anywhere.
 
 **Xplore** runs in the system tray (notification area), and it restores the Quick Launch toolbar feature from Windows 10 and earlier versions, specifically for file system navigation. Microsoft removed the Quick Launch toolbar in Windows 11, but Xplore brings it back, allowing you to browse your files and folders effortlessly through a dynamically expanding context menu. It makes opening a specific folder quick and easy, eliminating the extra clicks or double-clicks that would have otherwise been required to navigate to that specific folder or file in Windows Explorer.
 
