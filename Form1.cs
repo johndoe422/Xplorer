@@ -291,7 +291,9 @@ namespace Xplorer
 
             if (shfi.hIcon != IntPtr.Zero)
             {
-                return Icon.FromHandle(shfi.hIcon);
+                Icon driveIcon = (Icon)Icon.FromHandle(shfi.hIcon).Clone();
+                DestroyIcon(shfi.hIcon);
+                return driveIcon;
             }
 
             // Fallback to a custom default drive icon method
@@ -676,7 +678,8 @@ namespace Xplorer
 
                 if (shfi.hIcon != IntPtr.Zero)
                 {
-                    Icon folderIcon = Icon.FromHandle(shfi.hIcon);
+                    Icon folderIcon = (Icon)Icon.FromHandle(shfi.hIcon).Clone();
+                    DestroyIcon(shfi.hIcon);
                     return folderIcon;
                 }
             }
@@ -689,7 +692,7 @@ namespace Xplorer
                     IntPtr hIcon = ExtractIcon(IntPtr.Zero, "shell32.dll", 3);
                     if (hIcon != IntPtr.Zero)
                     {
-                        return Icon.FromHandle(hIcon);
+                        return (Icon)Icon.FromHandle(hIcon).Clone();
                     }
                 }
                 catch { }
