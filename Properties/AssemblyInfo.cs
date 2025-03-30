@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("A file explorer as an expanding menu of subfolders")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sunil TG")]
-[assembly: AssemblyProduct("Xplorer")]
+[assembly: AssemblyProduct("Xplore")]
 [assembly: AssemblyCopyright("Sunil TG Copyright ©  2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.2")]
-[assembly: AssemblyFileVersion("1.2")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

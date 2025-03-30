@@ -11,6 +11,8 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Configuration;
 using Microsoft.Win32;
+using System.Reflection;
+using System.Threading;
 
 
 
@@ -73,7 +75,7 @@ namespace Xplorer
         private GlobalHotkey globalHotkey;
 
         // Timer to track idle time and do some memory cleanup
-        private Timer idleTimer;
+        private System.Windows.Forms.Timer idleTimer;
 
         // Default app settings (config file will override)
         private int maxFolderEntries = 150;
@@ -112,7 +114,7 @@ namespace Xplorer
             InitializeComponent();
 
             // Initialize Timer 
-            idleTimer = new Timer();
+            idleTimer = new System.Windows.Forms.Timer();
             idleTimer.Interval = 4 * 60 * 1000; // 4 minutes in milliseconds
             idleTimer.Tick += IdleTimer_Tick;
 
@@ -141,14 +143,32 @@ namespace Xplorer
 
         private async void Form1_Load(object sender, EventArgs e)
         {
+            notifyIcon.Text  += " " + Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
             ShowStartupBalloonTip();
 
-            await Task.Delay(2000);
+            await Task.Delay(5000);
             this.Close();
 
             // Call AddtoStartup after 4 seconds
             await Task.Delay(2000);
             AddtoStartup();
+
+            // Start the update check without blocking UI
+            _ = ShowFormIfUpdateAvailableAsync();
+        }
+
+        async Task ShowFormIfUpdateAvailableAsync()
+        {
+            Autoupdate updFrm = new Autoupdate();
+            // Run CheckForUpdate() in a background thread
+            await Task.Run(() => updFrm.CheckForUpdate());
+
+
+            if (updFrm.UpdateAvailable)
+            {
+                updFrm.ShowDialog();
+            }
         }
 
         private void AddtoStartup()

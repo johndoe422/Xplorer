@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Autoupdate));
             this.label1 = new System.Windows.Forms.Label();
             this.labelVersion = new System.Windows.Forms.Label();
             this.labelCurrVer = new System.Windows.Forms.Label();
@@ -40,50 +41,55 @@
             // label1
             // 
             this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(13, 13);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(177, 13);
+            this.label1.Size = new System.Drawing.Size(201, 15);
             this.label1.TabIndex = 0;
             this.label1.Text = "A new version of Xplore is available:";
             // 
             // labelVersion
             // 
             this.labelVersion.AutoSize = true;
-            this.labelVersion.Location = new System.Drawing.Point(196, 13);
+            this.labelVersion.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelVersion.Location = new System.Drawing.Point(225, 13);
             this.labelVersion.Name = "labelVersion";
-            this.labelVersion.Size = new System.Drawing.Size(52, 13);
+            this.labelVersion.Size = new System.Drawing.Size(88, 15);
             this.labelVersion.TabIndex = 1;
-            this.labelVersion.Text = "Xplore v2";
+            this.labelVersion.Text = "Xplore v1.2.0.0";
             // 
             // labelCurrVer
             // 
             this.labelCurrVer.AutoSize = true;
-            this.labelCurrVer.Location = new System.Drawing.Point(110, 35);
+            this.labelCurrVer.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelCurrVer.Location = new System.Drawing.Point(129, 35);
             this.labelCurrVer.Name = "labelCurrVer";
-            this.labelCurrVer.Size = new System.Drawing.Size(52, 13);
+            this.labelCurrVer.Size = new System.Drawing.Size(88, 15);
             this.labelCurrVer.TabIndex = 1;
-            this.labelCurrVer.Text = "Xplore v1";
+            this.labelCurrVer.Text = "Xplore v1.1.0.0";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.Location = new System.Drawing.Point(13, 35);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(91, 13);
+            this.label2.Size = new System.Drawing.Size(104, 15);
             this.label2.TabIndex = 0;
             this.label2.Text = "Current version is:";
             // 
             // textBoxChanges
             // 
             this.textBoxChanges.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.textBoxChanges.Location = new System.Drawing.Point(12, 54);
+            this.textBoxChanges.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.textBoxChanges.Location = new System.Drawing.Point(12, 57);
             this.textBoxChanges.Multiline = true;
             this.textBoxChanges.Name = "textBoxChanges";
             this.textBoxChanges.ReadOnly = true;
-            this.textBoxChanges.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxChanges.Size = new System.Drawing.Size(613, 259);
+            this.textBoxChanges.Size = new System.Drawing.Size(613, 256);
             this.textBoxChanges.TabIndex = 2;
             this.textBoxChanges.TabStop = false;
+            this.textBoxChanges.Text = "Changelog:";
             // 
             // buttonClose
             // 
@@ -118,9 +124,10 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Autoupdate";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Check for Updates";
+            this.Text = "Update available! ";
             this.ResumeLayout(false);
             this.PerformLayout();
 
