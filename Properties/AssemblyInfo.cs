@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Xplorer")]
+[assembly: AssemblyTitle("Xplore")]
 [assembly: AssemblyDescription("A file explorer as an expanding menu of subfolders")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sunil TG")]

@@ -143,8 +143,11 @@ namespace Xplorer
         {
             ShowStartupBalloonTip();
 
+            await Task.Delay(2000);
+            this.Close();
+
             // Call AddtoStartup after 4 seconds
-            await Task.Delay(3000);
+            await Task.Delay(2000);
             AddtoStartup();
         }
 
@@ -240,7 +243,7 @@ namespace Xplorer
 
             if (!File.Exists(configPath))
             {
-                File.WriteAllText(configPath, Properties.Resources.DefaultConfigTemplate);
+                File.WriteAllText(configPath, Xplore.Properties.Resources.DefaultConfigTemplate);
             }
         }
 
@@ -272,10 +275,6 @@ namespace Xplorer
             this.Hide();
         }
 
-        private void notifyIcon_DoubleClick(object sender, EventArgs e)
-        {
-            this.Show();
-        }
 
         private Icon GetDriveIcon(DriveInfo drive)
         {
@@ -748,9 +747,8 @@ namespace Xplorer
         private void ShowStartupBalloonTip()
         {
             notifyIcon.BalloonTipTitle = "Xplore: Quick File System Access";
-            notifyIcon.BalloonTipText = "Navigate your file system with ease: " +
-                "Left or right click to open file system menu, " +
-                "double-click to open folders, and single-click to open files.";
+            notifyIcon.BalloonTipText = "Navigate your file system with ease. " +
+                "Use hotekey Win+Shift+A or click on Xplore icon in the notification area.";
             notifyIcon.BalloonTipIcon = ToolTipIcon.Info;
 
             // Show the balloon tip for 6 seconds
