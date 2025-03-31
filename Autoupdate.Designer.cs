@@ -52,7 +52,7 @@
             // 
             this.labelVersion.AutoSize = true;
             this.labelVersion.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelVersion.Location = new System.Drawing.Point(225, 13);
+            this.labelVersion.Location = new System.Drawing.Point(222, 13);
             this.labelVersion.Name = "labelVersion";
             this.labelVersion.Size = new System.Drawing.Size(88, 15);
             this.labelVersion.TabIndex = 1;
@@ -62,11 +62,11 @@
             // 
             this.labelCurrVer.AutoSize = true;
             this.labelCurrVer.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelCurrVer.Location = new System.Drawing.Point(129, 35);
+            this.labelCurrVer.Location = new System.Drawing.Point(127, 35);
             this.labelCurrVer.Name = "labelCurrVer";
-            this.labelCurrVer.Size = new System.Drawing.Size(88, 15);
+            this.labelCurrVer.Size = new System.Drawing.Size(24, 15);
             this.labelCurrVer.TabIndex = 1;
-            this.labelCurrVer.Text = "Xplore v1.1.0.0";
+            this.labelCurrVer.Text = "1.1";
             // 
             // label2
             // 
@@ -86,6 +86,7 @@
             this.textBoxChanges.Multiline = true;
             this.textBoxChanges.Name = "textBoxChanges";
             this.textBoxChanges.ReadOnly = true;
+            this.textBoxChanges.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.textBoxChanges.Size = new System.Drawing.Size(613, 256);
             this.textBoxChanges.TabIndex = 2;
             this.textBoxChanges.TabStop = false;
@@ -128,6 +129,7 @@
             this.Name = "Autoupdate";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Update available! ";
+            this.Load += new System.EventHandler(this.Autoupdate_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -28,10 +28,17 @@ namespace Xplorer
                 return;
             }
 
-           
-
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            string[] args = Environment.GetCommandLineArgs();
+            bool updateSuccess = args.Contains("update-success", StringComparer.OrdinalIgnoreCase);
+
+            if (updateSuccess)
+            {
+                MessageBox.Show("Update was successful!", "Update Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+
             Application.Run(new Form1());
         }
 

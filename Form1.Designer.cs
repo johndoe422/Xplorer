@@ -35,7 +35,6 @@
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.labelVer = new System.Windows.Forms.Label();
             this.contextMenuStripMain.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -84,24 +83,12 @@
             this.label2.TabIndex = 2;
             this.label2.Text = "Sunil TG © 2025";
             // 
-            // labelVer
-            // 
-            this.labelVer.AutoSize = true;
-            this.labelVer.Font = new System.Drawing.Font("Tahoma", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelVer.ForeColor = System.Drawing.SystemColors.Highlight;
-            this.labelVer.Location = new System.Drawing.Point(97, 87);
-            this.labelVer.Name = "labelVer";
-            this.labelVer.Size = new System.Drawing.Size(43, 13);
-            this.labelVer.TabIndex = 2;
-            this.labelVer.Text = "1.2.0.0";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(271, 119);
-            this.Controls.Add(this.labelVer);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
@@ -126,7 +113,6 @@
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label labelVer;
     }
 }
 
