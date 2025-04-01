@@ -131,7 +131,8 @@ namespace Xplorer
                 "if exist newversion.dat (\n" +
                 "    del Xplore.exe\n" +
                 "    rename newversion.dat Xplore.exe\n" +
-                 "   start Xplore.exe update-success\n" +
+                "    timeout /t 5 /nobreak >nul\n" +
+                "    start Xplore.exe update-success\n" +
                 ") else (\n" +
                 "    start Xplore.exe\n" +
                 ")\n" +
