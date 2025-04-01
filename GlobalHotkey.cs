@@ -26,11 +26,28 @@ public class GlobalHotkey
     private Form1 mainForm;
     private int _hotkeyId;
 
+    private static Form tempForm = null;
+
     public GlobalHotkey(NotifyIcon trayIcon, Form1 mainForm)
     {
         this.trayIcon = trayIcon;
         this.mainForm = mainForm;
         _hotkeyId = GetHashCode(); // Unique identifier for the hotkey
+
+        if (tempForm == null)
+        {
+            tempForm = new Form();
+
+            // Set the form's size to 0 and make it invisible
+            tempForm.Size = new Size(0, 0);
+            tempForm.StartPosition = FormStartPosition.Manual;
+            tempForm.Top = -100;
+            tempForm.Left = -100;
+            tempForm.ShowInTaskbar = false;
+            tempForm.BackColor = Color.Green;
+            tempForm.TransparencyKey = Color.Green;
+            tempForm.FormBorderStyle = FormBorderStyle.None;
+        }
     }
 
     public bool RegisterGlobalHotkey(uint modifier, uint key)
@@ -62,21 +79,12 @@ public class GlobalHotkey
 
     public static void ShowContextMenu(ContextMenuStrip contextMenu)
     {
-        using (Form tempForm = new Form())
-        {
-            // Set the form's size to 0 and make it invisible
-            tempForm.Size = new Size(0, 0);
-            tempForm.StartPosition = FormStartPosition.Manual;
-            tempForm.ShowInTaskbar = false;
-            tempForm.FormBorderStyle = FormBorderStyle.None;
-
-            // Show the form
+        // Show temporary form to host the context menu
+        if (!tempForm.Visible)
             tempForm.Show();
-
-            // Bring the context menu to the foreground and show it at cursor position
-            tempForm.Activate();
-            contextMenu.Show(tempForm, tempForm.PointToClient(Cursor.Position));
-        }
+        // Bring the context menu to the foreground and show it at cursor position
+        tempForm.Activate();
+        contextMenu.Show(tempForm, tempForm.PointToClient(Cursor.Position));
     }
 }
 
