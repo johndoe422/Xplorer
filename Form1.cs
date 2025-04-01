@@ -164,10 +164,11 @@ namespace Xplorer
             // Run CheckForUpdate() in a background thread
             await Task.Run(() => updFrm.CheckForUpdate());
 
-
             if (updFrm.UpdateAvailable)
             {
-                updFrm.ShowDialog();
+                updFrm.Show();
+                updFrm.BringToFront();
+                updFrm.TopMost = false;
             }
         }
 

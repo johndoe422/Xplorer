@@ -62,7 +62,7 @@ namespace Xplorer
 
         private void buttonInstall_Click(object sender, EventArgs e)
         {
-            Cursor.Current = Cursors.WaitCursor;
+            Cursor.Current = Cursors.AppStarting;
             try
             {
                 if (DownloadNewVersion())
@@ -117,37 +117,60 @@ namespace Xplorer
         {
             string appPath = Application.StartupPath;
             string batchFilePath = Path.Combine(appPath, "update.bat");
+            string logFile = Path.Combine(appPath, "update_log.txt");
+            string procName = Process.GetCurrentProcess().ProcessName + ".exe";
+
             int pid = Process.GetCurrentProcess().Id;
             string batchContent = "" +
                 "@echo off\n" +
-                "set PID=%1\n" +
+                "set \"PROCNAME=" + procName + "\"\n" +
+                "set \"LOGFILE=" + logFile + "\"\n" +
+                "\n" +
+                "echo [%date% %time%] Update script started. Monitoring process: %PROCNAME% >> %LOGFILE%\n" +
+                "\n" +
                 ":CHECKPROCESS\n" +
-                "tasklist | findstr /b /i /c:\"%PID%\" >nul\n" +
+                "tasklist /fi \"imagename eq %PROCNAME%\" | findstr /i \"%PROCNAME%\" >nul\n" +
                 "if not errorlevel 1 (\n" +
-                "    timeout /t 1 /nobreak >nul\n" +
+                "    echo [%date% %time%] %PROCNAME% is still running. Waiting... >> %LOGFILE%\n" +
+                "    timeout /t 4 /nobreak >nul\n" +
                 "    goto CHECKPROCESS\n" +
                 ")\n" +
-                "timeout /t 2 /nobreak >nul\n" +
+                "\n" +
+                "echo [%date% %time%] %PROCNAME% has stopped. Proceeding with update check... >> %LOGFILE%\n" +
+                "timeout /t 4 /nobreak >nul\n" +
+                "\n" +
                 "if exist newversion.dat (\n" +
-                "    del Xplore.exe\n" +
-                "    rename newversion.dat Xplore.exe\n" +
-                "    timeout /t 5 /nobreak >nul\n" +
-                "    start Xplore.exe update-success\n" +
+                "    echo [%date% %time%] New version download found. Replacing %PROCNAME%... >> %LOGFILE%\n" +
+                "    del /f /q %PROCNAME% 2>> %LOGFILE%\n" +
+                "    if exist %PROCNAME% (\n" +
+                "        echo [%date% %time%] ERROR: Failed to delete %PROCNAME% >> %LOGFILE%\n" +
+                "        exit /b 1\n" +
+                "    )\n" +
+                "    rename newversion.dat %PROCNAME% 2>> %LOGFILE%\n" +
+                "    if not exist %PROCNAME% (\n" +
+                "        echo [%date% %time%] ERROR: Failed to rename newversion.dat to %PROCNAME% >> %LOGFILE%\n" +
+                "        exit /b 1\n" +
+                "    )\n" +
+                "    echo [%date% %time%] Update successful. Starting new %PROCNAME%. >> %LOGFILE%\n" +
+                "    start \"\" %PROCNAME% update-success\n" +
                 ") else (\n" +
-                "    start Xplore.exe\n" +
+                "    echo [%date% %time%] No new version found. Starting existing %PROCNAME%. >> %LOGFILE%\n" +
+                "    start \"\" %PROCNAME%\n" +
                 ")\n" +
+                "\n" +
+                "echo [%date% %time%] Update completed. >> %LOGFILE%\n" +
                 "del \"%~f0\"\n";
-
 
             File.WriteAllText(batchFilePath, batchContent);
 
             Process.Start(new ProcessStartInfo
             {
                 FileName = batchFilePath,
-                Arguments = pid.ToString(),
+                Arguments = procName,
                 UseShellExecute = false,
                 CreateNoWindow = true
             });
+
             this.Close();
             System.Threading.Thread.Sleep(1000);
             Environment.Exit(0);
