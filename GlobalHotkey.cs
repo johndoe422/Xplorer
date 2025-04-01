@@ -26,7 +26,7 @@ public class GlobalHotkey
     private Form1 mainForm;
     private int _hotkeyId;
 
-    private static Form tempForm = null;
+    public static Form tempForm = null;
 
     public GlobalHotkey(NotifyIcon trayIcon, Form1 mainForm)
     {
@@ -34,6 +34,11 @@ public class GlobalHotkey
         this.mainForm = mainForm;
         _hotkeyId = GetHashCode(); // Unique identifier for the hotkey
 
+        SetupTempForm();
+    }
+
+    private static void SetupTempForm()
+    {
         if (tempForm == null)
         {
             tempForm = new Form();
@@ -47,6 +52,8 @@ public class GlobalHotkey
             tempForm.BackColor = Color.Green;
             tempForm.TransparencyKey = Color.Green;
             tempForm.FormBorderStyle = FormBorderStyle.None;
+            tempForm.Show();
+            tempForm.Activate();
         }
     }
 
@@ -79,11 +86,7 @@ public class GlobalHotkey
 
     public static void ShowContextMenu(ContextMenuStrip contextMenu)
     {
-        // Show temporary form to host the context menu
-        if (!tempForm.Visible)
-            tempForm.Show();
-        // Bring the context menu to the foreground and show it at cursor position
-        tempForm.Activate();
+        SetupTempForm();
         contextMenu.Show(tempForm, tempForm.PointToClient(Cursor.Position));
     }
 }
