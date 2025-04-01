@@ -25,6 +25,8 @@ Windows 10 allowed users to pin "This PC" (My Computer) to the taskbar as a quic
    
      ![Image](https://github.com/user-attachments/assets/0a4e2cbc-0975-412b-a067-8d5335b9f795) 
 
+The application is distributed as a standalone executable - no additional files or dependencies are required. On first run, it will generate its own configuration file. It will also prompt the user to add it to startup for convenience and it supports auto-updating so that user can choose to be on the latest version.
+
 ## Usage
 
 1. Left or right click the **Xplore** icon in the system tray.  
