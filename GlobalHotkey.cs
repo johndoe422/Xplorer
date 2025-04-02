@@ -35,6 +35,8 @@ public class GlobalHotkey
         _hotkeyId = GetHashCode(); // Unique identifier for the hotkey
 
         SetupTempForm();
+        tempForm.Show();
+        CloseTempForm();
     }
 
     private static void SetupTempForm()
@@ -54,6 +56,16 @@ public class GlobalHotkey
             tempForm.FormBorderStyle = FormBorderStyle.None;
             tempForm.Show();
             tempForm.Activate();
+        }
+    }
+
+    public static void CloseTempForm()
+    {
+        if (tempForm != null)
+        {
+            tempForm.Close();
+            tempForm.Dispose(); 
+            tempForm = null;
         }
     }
 

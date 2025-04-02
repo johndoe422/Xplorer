@@ -795,12 +795,7 @@ namespace Xplorer
 
         private void contextMenuStripMain_Closed(object sender, ToolStripDropDownClosedEventArgs e)
         {
-            if (GlobalHotkey.tempForm != null)
-            {
-                GlobalHotkey.tempForm.Close();
-                GlobalHotkey.tempForm.Dispose();
-                GlobalHotkey.tempForm = null;
-            }
+            GlobalHotkey.CloseTempForm();
         }
     }
 }
