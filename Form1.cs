@@ -14,8 +14,6 @@ using Microsoft.Win32;
 using System.Reflection;
 using System.Threading;
 
-
-
 namespace Xplorer
 {
     public partial class Form1: Form
@@ -174,57 +172,53 @@ namespace Xplorer
 
         private void AddtoStartup()
         {
+            // Remove the registry entry if it exists, since we don't use it anymore
+            string keyName = @"Software\Microsoft\Windows\CurrentVersion\Run";
+            string valueName = "Xplore";
+
+            using (RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName, true))
+            {
+                if (key != null && key.GetValue(valueName) != null)
+                {
+                    this.dontShowAgain = false;
+                    key.DeleteValue(valueName);
+                }
+            }
+
             if (dontShowAgain)
                 return;
 
             try
             {
-                RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
-                if (registryKey.GetValue("Xplore") != null)
+                // Check if the app is in startup
+                if (StartupShortcutCreator.ShortcutExists())
                 {
-                    // Already added to startup, but check if exe path in registryKey is correct
-                    string registryPath = registryKey.GetValue("Xplore").ToString();
-                    string currentExePath = Application.ExecutablePath;
+                    return;
+                }
 
-                    // Check if the path in the registry matches the current executable path
-                    if (string.Equals(registryPath, currentExePath, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // Paths match, no need to update or show the dialog
-                        return;
-                    }
+                AddtoStartup addtoStartup = new AddtoStartup();
+                addtoStartup.ShowDialog();
+
+                if (addtoStartup.DoNotShowAgain)
+                {
+                    dontShowAgain = true;
+                    // set the value in the app config 
+                    Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                    config.AppSettings.Settings["DontShowAgain"].Value = "true";
+                    config.Save(ConfigurationSaveMode.Modified);
+                    ConfigurationManager.RefreshSection("appSettings");
+                }
+
+                // Add to startup if user chose to do it
+                if (addtoStartup.AddToStartup)
+                {
+                    StartupShortcutCreator.CreateStartupShortcut();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to check registry: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
+                MessageBox.Show("Error adding to startup: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            AddtoStartup addtoStartup = new AddtoStartup();
-            addtoStartup.ShowDialog();
-
-            if (addtoStartup.DoNotShowAgain)
-            {
-                dontShowAgain = true;
-                // set the value in the app config 
-                Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                config.AppSettings.Settings["DontShowAgain"].Value = "true";
-                config.Save(ConfigurationSaveMode.Modified);
-                ConfigurationManager.RefreshSection("appSettings");
-            }
-
-            if (addtoStartup.AddToStartup)
-            {
-                try
-                {
-                    string exePath = Application.ExecutablePath;
-                    RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
-                    registryKey.SetValue("Xplore", exePath);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Failed to add to startup: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
             }
         }
 
