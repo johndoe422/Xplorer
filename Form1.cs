@@ -13,10 +13,11 @@ using System.Configuration;
 using Microsoft.Win32;
 using System.Reflection;
 using System.Threading;
+using System.Management;
 
 namespace Xplorer
 {
-    public partial class Form1: Form
+    public partial class Form1 : Form
     {
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         private struct SHFILEINFO
@@ -80,6 +81,10 @@ namespace Xplorer
         private bool dontShowAgain = false;
         private bool loadStartmenu = true;
 
+        // To watch for removable drive insertions and removals
+        private ManagementEventWatcher insertWatcher;
+        private ManagementEventWatcher removeWatcher;
+
         private enum FolderType
         {
             RegularFolder,
@@ -105,11 +110,12 @@ namespace Xplorer
                 this.exitToolStripMenuItem.Text = exitMode == ExitMenuMode.Cancel ? "&Cancel" : "E&xit";
             }
         }
-        
+
 
         public Form1()
         {
             InitializeComponent();
+            StartDiskChangeWatchers();
 
             // Initialize Timer 
             idleTimer = new System.Windows.Forms.Timer();
@@ -128,8 +134,87 @@ namespace Xplorer
             );
 
             genericFolderIcon = GetFolderIcon();
+            ReloadBaseMenuItems();
+        }
+
+        private void ReloadBaseMenuItems()
+        {
+            // Clear all items except the exit menu item  
+            contextMenuStripMain.Items.Clear();
+            contextMenuStripMain.Items.Add(exitToolStripMenuItem);
+
+            // Repopulate the menu items  
             PopulateDriveMenuItems();
             PopulateProfileFolders();
+        }
+
+        private void StartDiskChangeWatchers()
+        {
+            try
+            {
+                // Watch for removable disk insertion
+                insertWatcher = new ManagementEventWatcher(
+                    new WqlEventQuery("SELECT * FROM Win32_VolumeChangeEvent WHERE EventType = 2"));
+                insertWatcher.EventArrived += OnDiskInserted;
+                insertWatcher.Start();
+
+                // Watch for removable disk removal
+                removeWatcher = new ManagementEventWatcher(
+                    new WqlEventQuery("SELECT * FROM Win32_VolumeChangeEvent WHERE EventType = 3"));
+                removeWatcher.EventArrived += OnDiskRemoved;
+                removeWatcher.Start();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error starting disk change watchers: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void CloseMenuOnDiskChange()
+        {
+            // Close the menu if its open
+            if (contextMenuStripMain.Visible)
+            {
+                contextMenuStripMain.Close();
+            }
+        }
+
+        // Reload the menu items because there may be new removable drives
+        private void contextMenuStripMain_Opening(object sender, CancelEventArgs e)
+        {
+            ReloadBaseMenuItems();
+        }
+
+        private void OnDiskInserted(object sender, EventArrivedEventArgs e)
+        {
+            // Give time for the system to recognize the disk, even 
+            Thread.Sleep(1500);
+            if (this.InvokeRequired)
+            {
+                // Ensure the method is executed on the UI thread
+                this.BeginInvoke((MethodInvoker)(() => CloseMenuOnDiskChange()));
+            }
+            else
+            {
+                // Directly call the method if already on the UI thread
+                CloseMenuOnDiskChange();
+            }
+        }
+
+        private void OnDiskRemoved(object sender, EventArrivedEventArgs e)
+        {
+            // Give time for the system to unmount
+            Thread.Sleep(500);
+            if (this.InvokeRequired)
+            {
+                // Ensure the method is executed on the UI thread
+                this.BeginInvoke((MethodInvoker)(() => CloseMenuOnDiskChange()));
+            }
+            else
+            {
+                // Directly call the method if already on the UI thread
+                CloseMenuOnDiskChange();
+            }
         }
 
         private void IdleTimer_Tick(object sender, EventArgs e)
@@ -141,7 +226,7 @@ namespace Xplorer
 
         private async void Form1_Load(object sender, EventArgs e)
         {
-            notifyIcon.Text  += " " + Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            notifyIcon.Text += " " + Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             ShowStartupBalloonTip();
 
@@ -283,10 +368,16 @@ namespace Xplorer
                 if (!this.isCloseEventCancelled)
                 {
                     globalHotkey.UnregisterGlobalHotkey();
+
+                    // Stop the watchers when the form is closing
+                    insertWatcher?.Stop();
+                    insertWatcher?.Dispose();
+                    removeWatcher?.Stop();
+                    removeWatcher?.Dispose();
                 }
             }
             catch (Exception) { }
-            
+
             this.Hide();
         }
 
@@ -348,10 +439,9 @@ namespace Xplorer
 
         private ToolStripMenuItem CreateDriveMenuItem(DriveInfo drive)
         {
-            // Get the volume label, defaulting to the drive letter if no label exists
-            string volumeLabel = string.IsNullOrWhiteSpace(drive.VolumeLabel)
-                ? $"Local Disk {drive.Name.TrimEnd('\\')}"
-                : drive.VolumeLabel;
+            // Get the volume label based on the drive type
+            string volumeLabel = drive.DriveType == DriveType.Removable
+                 ? $"{drive.VolumeLabel} (Removable Disk)" : drive.VolumeLabel;
 
             // Create a new menu item with volume label and drive letter
             ToolStripMenuItem driveMenuItem = new ToolStripMenuItem
@@ -368,7 +458,7 @@ namespace Xplorer
             catch
             {
                 // Fallback to a default icon if needed
-                driveMenuItem.Image =  new Icon(SystemIcons.Exclamation, 16, 16).ToBitmap();
+                driveMenuItem.Image = new Icon(SystemIcons.Exclamation, 16, 16).ToBitmap();
             }
 
             // Add click event to open the drive in File Explorer
@@ -410,7 +500,7 @@ namespace Xplorer
                 // Get all logical drives in the system
                 DriveInfo[] drives = DriveInfo.GetDrives()
                     // Optional: Filter to only show Fixed drives if you want
-                    .Where(d => d.DriveType == DriveType.Fixed)
+                    .Where(d => d.DriveType == DriveType.Fixed || d.DriveType == DriveType.Removable)
                     .ToArray();
 
                 foreach (DriveInfo drive in drives)
@@ -488,7 +578,7 @@ namespace Xplorer
                     directories = directories.Take(foldersToShow).ToArray();
                     files = files.Take(filesToShow).ToArray();
                 }
-               
+
                 foreach (string dir in directories.OrderBy(d => Path.GetFileName(d)))
                 {
                     ToolStripMenuItem folderMenuItem = CreateFolderMenuItem(dir);
@@ -500,7 +590,7 @@ namespace Xplorer
                     ToolStripMenuItem fileMenuItem = CreateFileMenuItem(file);
                     parentMenuItem.DropDownItems.Add(fileMenuItem);
                 }
-                
+
                 // If the entries were limited due to setting,
                 // add a last item that reads "More..." to indicate that there are more items
                 if (isLimited)
@@ -676,7 +766,7 @@ namespace Xplorer
                     MessageBox.Show($"Could not open file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             };
-         
+
             return fileMenuItem;
         }
 
@@ -791,5 +881,6 @@ namespace Xplorer
         {
             GlobalHotkey.CloseTempForm();
         }
+
     }
 }
