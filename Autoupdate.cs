@@ -197,10 +197,9 @@ namespace Xplorer
 
                 this.UpdateAvailable = releaseInfo.CheckIfNewVersion(Application.ProductVersion);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                string errorMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                MessageBox.Show("Could not check for updates: " + errorMessage, "Xplore", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // Suppress any exception and do nothing
             }
         }
 
