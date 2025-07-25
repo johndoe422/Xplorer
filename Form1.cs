@@ -115,6 +115,18 @@ namespace Xplorer
         public Form1()
         {
             InitializeComponent();
+
+            // Initialize tooltip
+            fileInfoTooltip = new ToolTip
+            {
+                UseAnimation = true,
+                UseFading = true,
+                AutoPopDelay = 5000,
+                InitialDelay = 500,
+                ReshowDelay = 100,
+                ShowAlways = true
+            };
+
             StartDiskChangeWatchers();
 
             // Initialize Timer 
@@ -750,8 +762,12 @@ namespace Xplorer
 
             ToolStripMenuItem fileMenuItem = new ToolStripMenuItem(fileName)
             {
-                Image = GetFileIcon(filePath).ToBitmap()
+                Image = GetFileIcon(filePath).ToBitmap(),
+                Tag = filePath // Store the full path for tooltip use
             };
+
+            fileMenuItem.MouseHover += ShowFileTooltip;
+            fileMenuItem.MouseLeave += HideFileTooltip;
 
             fileMenuItem.Click += (s, e) =>
             {
@@ -824,7 +840,7 @@ namespace Xplorer
 
                 if (shfi.hIcon != IntPtr.Zero)
                 {
-                    // Clone the icon to prevent referncing to unmanaged heap after it gets deallocated by DestroyIcon
+                    // Clone the icon to prevent refernencing to unmanaged heap after it gets deallocated by DestroyIcon
                     Icon fileIcon = (Icon)Icon.FromHandle(shfi.hIcon).Clone();
                     // Destroy the original icon handle, fix for GDI handle leaks.
                     DestroyIcon(shfi.hIcon);
@@ -882,5 +898,132 @@ namespace Xplorer
             GlobalHotkey.CloseTempForm();
         }
 
+        private ToolTip fileInfoTooltip;
+        private Point lastMousePosition;
+
+        private string GetFileMetadataText(string filePath)
+        {
+            try
+            {
+                var fileInfo = new FileInfo(filePath);
+                string fileType = GetFileType(filePath);
+                var sb = new StringBuilder();
+
+                sb.AppendLine($"Name: {fileInfo.Name}");
+                sb.AppendLine($"Type: {fileType}");
+                sb.AppendLine($"Size: {FormatFileSize(fileInfo.Length)}");
+                sb.AppendLine($"Created: {fileInfo.CreationTime:g}");
+                sb.AppendLine($"Modified: {fileInfo.LastWriteTime:g}");
+
+                return sb.ToString().TrimEnd();
+            }
+            catch (Exception ex)
+            {
+                return $"Error getting file info: {ex.Message}";
+            }
+        }
+
+        private string GetFileType(string filePath)
+        {
+            try
+            {
+                SHFILEINFO shfi = new SHFILEINFO();
+                uint flags = SHGFI_USEFILEATTRIBUTES;
+
+                IntPtr result = SHGetFileInfo(filePath,
+                    FILE_ATTRIBUTE_NORMAL,
+                    ref shfi,
+                    (uint)Marshal.SizeOf(shfi),
+                    flags);
+
+                return !string.IsNullOrEmpty(shfi.szTypeName) ? shfi.szTypeName : Path.GetExtension(filePath);
+            }
+            catch
+            {
+                return Path.GetExtension(filePath);
+            }
+        }
+
+        private string FormatFileSize(long bytes)
+        {
+            string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
+            int counter = 0;
+            decimal number = bytes;
+
+            while (Math.Round(number / 1024) >= 1)
+            {
+                number /= 1024;
+                counter++;
+            }
+
+            return $"{number:n1} {suffixes[counter]}";
+        }
+
+        private void ShowFileTooltip(object sender, EventArgs e)
+        {
+            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is string filePath)
+            {
+                // Get current mouse position
+                Point mousePos = Control.MousePosition;
+
+                // If mouse hasn't moved significantly, don't reshow the tooltip
+                if (lastMousePosition == mousePos) return;
+                lastMousePosition = mousePos;
+
+                // Hide any existing tooltip
+                fileInfoTooltip.Hide(contextMenuStripMain);
+
+                // Get metadata text
+                string tooltipText = GetFileMetadataText(filePath);
+
+                // Calculate best position for tooltip
+                Point tooltipPos = CalculateTooltipPosition(mousePos, tooltipText);
+
+                // Show tooltip at calculated position
+                fileInfoTooltip.Show(tooltipText, contextMenuStripMain,
+                    contextMenuStripMain.PointToClient(tooltipPos), 5000);
+            }
+        }
+
+        private void HideFileTooltip(object sender, EventArgs e)
+        {
+            fileInfoTooltip.Hide(contextMenuStripMain);
+        }
+
+        /// <summary>
+        /// This is needed to avoid the tooltip overlapping with the mouse cursor. 
+        /// It will create flicker otherwise
+        /// </summary>
+        /// <param name="mousePos"></param>
+        /// <param name="tooltipText"></param>
+        /// <returns></returns>
+        private Point CalculateTooltipPosition(Point mousePos, string tooltipText)
+        {
+            // Estimate tooltip size (rough calculation)
+            Size tooltipSize = new Size(
+                Math.Max(200, tooltipText.Split('\n').Max(l => l.Length) * 7),
+                tooltipText.Split('\n').Length * 15 + 10
+            );
+
+            // Get screen working area
+            Rectangle screen = Screen.FromPoint(mousePos).WorkingArea;
+
+            // Initial position to the right of cursor
+            Point pos = new Point(mousePos.X + 15, mousePos.Y);
+
+            // If tooltip would go off right edge, show it to the left of cursor
+            if (pos.X + tooltipSize.Width > screen.Right)
+            {
+                pos.X = mousePos.X - tooltipSize.Width - 15;
+            }
+
+            // If tooltip would go off bottom edge, adjust Y position upward
+            if (pos.Y + tooltipSize.Height > screen.Bottom)
+            {
+                pos.Y = screen.Bottom - tooltipSize.Height - 5;
+            }
+
+            return pos;
+        }
     }
 }
