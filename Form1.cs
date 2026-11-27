@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -71,6 +71,10 @@ namespace Xplorer
         private bool isCloseEventCancelled = true;
         private int menuOpenCount = 0;
         Icon genericFolderIcon = null;
+        private Bitmap genericFolderBitmap = null;
+        private readonly Dictionary<string, Bitmap> fileIconCache = new Dictionary<string, Bitmap>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Bitmap> specialFolderIconCache = new Dictionary<string, Bitmap>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Bitmap> driveIconCache = new Dictionary<string, Bitmap>(StringComparer.OrdinalIgnoreCase);
         private GlobalHotkey globalHotkey;
 
         // Timer to track idle time and do some memory cleanup
@@ -146,7 +150,35 @@ namespace Xplorer
             );
 
             genericFolderIcon = GetFolderIcon();
+            genericFolderBitmap = genericFolderIcon.ToBitmap();
             ReloadBaseMenuItems();
+        }
+
+        private void DisposeCachedIcons()
+        {
+            foreach (Bitmap bmp in fileIconCache.Values)
+            {
+                bmp.Dispose();
+            }
+            fileIconCache.Clear();
+
+            foreach (Bitmap bmp in specialFolderIconCache.Values)
+            {
+                bmp.Dispose();
+            }
+            specialFolderIconCache.Clear();
+
+            foreach (Bitmap bmp in driveIconCache.Values)
+            {
+                bmp.Dispose();
+            }
+            driveIconCache.Clear();
+
+            genericFolderBitmap?.Dispose();
+            genericFolderBitmap = null;
+
+            genericFolderIcon?.Dispose();
+            genericFolderIcon = null;
         }
 
         private void ReloadBaseMenuItems()
@@ -386,6 +418,8 @@ namespace Xplorer
                     insertWatcher?.Dispose();
                     removeWatcher?.Stop();
                     removeWatcher?.Dispose();
+
+                    DisposeCachedIcons();
                 }
             }
             catch (Exception) { }
@@ -429,19 +463,31 @@ namespace Xplorer
 
                 if (hIcon != IntPtr.Zero)
                 {
-                    return Icon.FromHandle(hIcon);
+                    Icon cloned = (Icon)Icon.FromHandle(hIcon).Clone();
+                    DestroyIcon(hIcon);
+                    return cloned;
                 }
             }
             catch
             {
                 // If extraction fails, create a simple placeholder icon
-                Bitmap bmp = new Bitmap(16, 16);
-                using (Graphics g = Graphics.FromImage(bmp))
+                using (Bitmap bmp = new Bitmap(16, 16))
                 {
-                    g.Clear(Color.LightGray);
-                    g.DrawRectangle(Pens.Gray, 0, 0, 15, 15);
+                    using (Graphics g = Graphics.FromImage(bmp))
+                    {
+                        g.Clear(Color.LightGray);
+                        g.DrawRectangle(Pens.Gray, 0, 0, 15, 15);
+                    }
+                    IntPtr bmpHicon = bmp.GetHicon();
+                    try
+                    {
+                        return (Icon)Icon.FromHandle(bmpHicon).Clone();
+                    }
+                    finally
+                    {
+                        DestroyIcon(bmpHicon);
+                    }
                 }
-                return Icon.FromHandle(bmp.GetHicon());
             }
 
             // Last resort fallback
@@ -462,16 +508,26 @@ namespace Xplorer
             };
 
             // Set the icon for the menu item
-            try
+            if (!driveIconCache.TryGetValue(drive.Name, out Bitmap driveBitmap))
             {
-                Icon driveIcon = GetDriveIcon(drive);
-                driveMenuItem.Image = driveIcon.ToBitmap();
+                try
+                {
+                    using (Icon driveIcon = GetDriveIcon(drive))
+                    {
+                        driveBitmap = driveIcon.ToBitmap();
+                    }
+                }
+                catch
+                {
+                    // Fallback to a default icon if needed
+                    using (Icon fallbackIcon = new Icon(SystemIcons.Exclamation, 16, 16))
+                    {
+                        driveBitmap = fallbackIcon.ToBitmap();
+                    }
+                }
+                driveIconCache[drive.Name] = driveBitmap;
             }
-            catch
-            {
-                // Fallback to a default icon if needed
-                driveMenuItem.Image = new Icon(SystemIcons.Exclamation, 16, 16).ToBitmap();
-            }
+            driveMenuItem.Image = driveBitmap;
 
             // Add click event to open the drive in File Explorer
             driveMenuItem.MouseDown += (s, e) =>
@@ -575,20 +631,28 @@ namespace Xplorer
             {
                 // Load folders first
                 string[] directories = Directory.GetDirectories(path);
-                string[] files = Directory.GetFiles(path);
+                string[] files;
+                bool isLimited;
 
                 // Limit the number of items to show in the menu 
                 // if number of folders and files together exceed maxFolderEntries,
                 // then only load up to maxFolderEntries, give preference to folders
-                int totalItems = directories.Length + files.Length;
-                bool isLimited = totalItems > maxFolderEntries;
-                if (isLimited)
+                if (directories.Length >= maxFolderEntries)
                 {
-                    int foldersToShow = Math.Min(directories.Length, maxFolderEntries);
-                    int filesToShow = Math.Min(files.Length, maxFolderEntries - foldersToShow);
-
-                    directories = directories.Take(foldersToShow).ToArray();
-                    files = files.Take(filesToShow).ToArray();
+                    isLimited = directories.Length > maxFolderEntries || Directory.EnumerateFiles(path).Any();
+                    directories = directories.Take(maxFolderEntries).ToArray();
+                    files = Array.Empty<string>();
+                }
+                else
+                {
+                    files = Directory.GetFiles(path);
+                    int totalItems = directories.Length + files.Length;
+                    isLimited = totalItems > maxFolderEntries;
+                    if (isLimited)
+                    {
+                        int filesToShow = maxFolderEntries - directories.Length;
+                        files = files.Take(filesToShow).ToArray();
+                    }
                 }
 
                 foreach (string dir in directories.OrderBy(d => Path.GetFileName(d)))
@@ -650,23 +714,36 @@ namespace Xplorer
             string folderName = Path.GetFileName(folderPath);
             bool isFolderEmpty = false;
 
-            Icon folderIcon = type == FolderType.SpecialFolder ? FolderIconRetriever.GetFolderIcon(folderPath) : genericFolderIcon;
+            Bitmap folderBitmap;
+            if (type == FolderType.SpecialFolder)
+            {
+                if (!specialFolderIconCache.TryGetValue(folderPath, out folderBitmap))
+                {
+                    using (Icon folderIcon = FolderIconRetriever.GetFolderIcon(folderPath))
+                    {
+                        folderBitmap = folderIcon.ToBitmap();
+                    }
+                    specialFolderIconCache[folderPath] = folderBitmap;
+                }
+            }
+            else
+            {
+                folderBitmap = genericFolderBitmap;
+            }
 
             ToolStripMenuItem folderMenuItem = new ToolStripMenuItem(folderName)
             {
-                Image = folderIcon.ToBitmap(),
+                Image = folderBitmap,
                 Tag = 0
             };
 
             try
             {
-                string[] directories = Directory.GetDirectories(folderPath);
-                string[] files = Directory.GetFiles(folderPath);
+                isFolderEmpty = !Directory.EnumerateFileSystemEntries(folderPath).Any();
 
-                if (directories.Length == 0 && files.Length == 0)
+                if (isFolderEmpty)
                 {
                     folderMenuItem.ForeColor = Color.Gray;
-                    isFolderEmpty = true;
                     ToolStripMenuItem dummyItem = new ToolStripMenuItem("(Empty)")
                     {
                         Enabled = false
@@ -699,10 +776,7 @@ namespace Xplorer
                         folderMenuItem.DropDownItems.Clear();
                         try
                         {
-                            if (directories.Length != 0 || files.Length != 0)
-                            {
-                                PopulateDriveSubmenu(folderMenuItem, folderPath);
-                            }
+                            PopulateDriveSubmenu(folderMenuItem, folderPath);
                         }
                         catch (UnauthorizedAccessException)
                         {
@@ -756,13 +830,27 @@ namespace Xplorer
             return folderMenuItem;
         }
 
+        private Bitmap GetCachedFileBitmap(string filePath)
+        {
+            string ext = Path.GetExtension(filePath) ?? string.Empty;
+            if (!fileIconCache.TryGetValue(ext, out Bitmap bmp))
+            {
+                using (Icon fileIcon = GetFileIcon(filePath))
+                {
+                    bmp = fileIcon.ToBitmap();
+                }
+                fileIconCache[ext] = bmp;
+            }
+            return bmp;
+        }
+
         private ToolStripMenuItem CreateFileMenuItem(string filePath)
         {
             string fileName = Path.GetFileName(filePath);
 
             ToolStripMenuItem fileMenuItem = new ToolStripMenuItem(fileName)
             {
-                Image = GetFileIcon(filePath).ToBitmap(),
+                Image = GetCachedFileBitmap(filePath),
                 Tag = filePath // Store the full path for tooltip use
             };
 
@@ -815,14 +903,16 @@ namespace Xplorer
                     IntPtr hIcon = ExtractIcon(IntPtr.Zero, "shell32.dll", 3);
                     if (hIcon != IntPtr.Zero)
                     {
-                        return (Icon)Icon.FromHandle(hIcon).Clone();
+                        Icon cloned = (Icon)Icon.FromHandle(hIcon).Clone();
+                        DestroyIcon(hIcon);
+                        return cloned;
                     }
                 }
                 catch { }
             }
 
             // Last resort
-            return SystemIcons.Application;
+            return (Icon)SystemIcons.Application.Clone();
         }
 
         private Icon GetFileIcon(string filePath)
@@ -1000,9 +1090,16 @@ namespace Xplorer
         private Point CalculateTooltipPosition(Point mousePos, string tooltipText)
         {
             // Estimate tooltip size (rough calculation)
+            string[] lines = tooltipText.Split('\n');
+            int maxLineLength = 0;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (lines[i].Length > maxLineLength)
+                    maxLineLength = lines[i].Length;
+            }
             Size tooltipSize = new Size(
-                Math.Max(200, tooltipText.Split('\n').Max(l => l.Length) * 7),
-                tooltipText.Split('\n').Length * 15 + 10
+                Math.Max(200, maxLineLength * 7),
+                lines.Length * 15 + 10
             );
 
             // Get screen working area

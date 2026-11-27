@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -60,12 +60,13 @@ namespace Xplorer
             InitializeComponent();
         }
 
-        private void buttonInstall_Click(object sender, EventArgs e)
+        private async void buttonInstall_Click(object sender, EventArgs e)
         {
+            buttonInstall.Enabled = false;
             Cursor.Current = Cursors.AppStarting;
             try
             {
-                if (DownloadNewVersion())
+                if (await DownloadNewVersionAsync())
                 {
                     UpdateBinary();
                 }
@@ -78,10 +79,11 @@ namespace Xplorer
             finally
             {
                 Cursor.Current = Cursors.Default;
+                buttonInstall.Enabled = true;
             }
         }
 
-        private bool DownloadNewVersion()
+        private async Task<bool> DownloadNewVersionAsync()
         {
             try
             {
@@ -94,16 +96,15 @@ namespace Xplorer
                     File.Delete(newVersionPath);
                 }
 
-
-
                 using (HttpClient client = new HttpClient())
+                using (var response = await client.GetAsync(releaseInfo.DownloadUrl, HttpCompletionOption.ResponseHeadersRead))
                 {
-                    var response = client.GetAsync(releaseInfo.DownloadUrl).Result;
                     response.EnsureSuccessStatusCode();
 
-                    var data = response.Content.ReadAsByteArrayAsync().Result;
-                    string filePath = Path.Combine(Application.StartupPath, "newversion.dat");
-                    File.WriteAllBytes(filePath, data);
+                    using (var fileStream = new FileStream(newVersionPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true))
+                    {
+                        await response.Content.CopyToAsync(fileStream);
+                    }
                 }
                 return true;
             }

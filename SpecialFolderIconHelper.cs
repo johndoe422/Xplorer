@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Drawing;
 
@@ -72,7 +72,7 @@ public class FolderIconRetriever
         }
 
         // Fallback to system application icon if all else fails
-        return SystemIcons.Application;
+        return (Icon)SystemIcons.Application.Clone();
     }
 
     // Additional P/Invoke to properly destroy icon handle

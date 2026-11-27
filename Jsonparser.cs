@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 public class JsonParser
@@ -66,9 +66,9 @@ public class JsonParser
         if (json[index] == '{') return ParseObject();
         if (json[index] == '[') return ParseArray();
         if (char.IsDigit(json[index]) || json[index] == '-') return ParseNumber();
-        if (json.Substring(index, 4) == "true") { index += 4; return true; }
-        if (json.Substring(index, 5) == "false") { index += 5; return false; }
-        if (json.Substring(index, 4) == "null") { index += 4; return null; }
+        if (index + 4 <= json.Length && string.CompareOrdinal(json, index, "true", 0, 4) == 0) { index += 4; return true; }
+        if (index + 5 <= json.Length && string.CompareOrdinal(json, index, "false", 0, 5) == 0) { index += 5; return false; }
+        if (index + 4 <= json.Length && string.CompareOrdinal(json, index, "null", 0, 4) == 0) { index += 4; return null; }
         throw new Exception("Invalid JSON value");
     }
 
